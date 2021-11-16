@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: larnev-hobled-lidled-mordev
+  namespace: urbit
+  labels:
+    app: larnev-hobled-lidled-mordev
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: larnev-hobled-lidled-mordev
+  serviceName: larnev-hobled-lidled-mordev
+  template:
+    metadata:
+      labels:
+        app: larnev-hobled-lidled-mordev
+    spec:
+      containers:
+      - image: us.gcr.io/soapbubble-dev/urbit:4
+        imagePullPolicy: Always
+        name: urbit-larnev-hobled-lidled-mordev
+        command:
+        - urbit
+        - -t
+        - -p
+        - "34344"
+        # - -w
+        # - larnev-hobled-lidled-mordev
+        # - -k
+        # - /urbit/larnev-hobled-lidled-mordev.key
+        - larnev-hobled-lidled-mordev
+        env: 
+        # - name: MASTER-KEY
+        #   value: berglas://soapbubble-dev-secrets/larnev-hobled-lidled-mordev-master-key?destination=/urbit/larnev-hobled-lidled-mordev.key
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/key.json
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 34344
+          name: ames
+          protocol: UDP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2000Mi
+          requests:
+            cpu: 500m
+            memory: 2000Mi
+        volumeMounts:
+        - mountPath: /urbit
+          name: larnev-hobled-lidled-mordev
+        - name: gcp-serviceaccount
+          mountPath: "/secret"
+          readOnly: true
+      imagePullSecrets:
+      - name: "soapbubble-dev"
+      dnsConfig: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+      - name: gcp-serviceaccount
+        secret:
+          secretName: gcp-serviceaccount
+  volumeClaimTemplates:
+  - metadata:
+      name: larnev-hobled-lidled-mordev
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 60Gi
+      storageClassName: linode-block-storage-retain
+
+---

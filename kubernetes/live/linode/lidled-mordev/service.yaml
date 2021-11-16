@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidled-mordev
+  namespace: urbit
+  labels:
+    app: lidled-mordev
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: ames
+      port: 34343
+      protocol: UDP
+      targetPort: 34343
+  selector:
+    app: lidled-mordev
+  type: NodePort
+---

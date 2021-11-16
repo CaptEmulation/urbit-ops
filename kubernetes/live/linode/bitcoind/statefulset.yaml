@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bitcoind-mainnet
+spec:
+  replicas: 1
+  serviceName: bitcoind-mainnet
+  selector:
+    matchLabels:
+      app: bitcoind-mainnet
+  template:
+    metadata:
+      name: bitcoind-mainnet
+      labels:
+        app: bitcoind-mainnet
+    spec:
+      hostname: bitcoind-mainnet
+      containers:
+      - name: bitcoind-mainnet
+        image: wexpertsystems/urbit-bitcoin-node
+        command:
+          - /mainnet-start.sh
+        env:
+        - name: RPC_PASSWORD
+          value: berglas://soapbubble-dev-secrets/bitcoin-rpc-password
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/key.json
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /bitcoin/data
+          name: bitcoind-pvc
+        - name: gcp-serviceaccount
+          mountPath: "/secret"
+          readOnly: true
+        resources:
+          limits:
+            cpu: 200m
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
+        ports:
+          - containerPort: 8332
+            protocol: TCP
+            name: rpc-port
+          - containerPort: 8333
+            protocol: TCP
+            name: p2p-port
+          - containerPort: 50002
+            protocol: TCP
+            name: p2p-port
+        
+      restartPolicy: Always
+      volumes:
+      - name: gcp-serviceaccount
+        secret:
+          secretName: gcp-serviceaccount
+      imagePullSecrets:
+      - name: soapbubble-dev
+  volumeClaimTemplates:
+  - metadata:
+      name: bitcoind-pvc
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: linode-block-storage-retain
+      resources:
+        requests:
+          storage: 600Gi

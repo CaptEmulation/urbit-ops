@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lidled-mordev
+  namespace: urbit
+  labels:
+    app: lidled-mordev
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: lidled-mordev
+  serviceName: lidled-mordev
+  template:
+    metadata:
+      labels:
+        app: lidled-mordev
+    spec:
+      containers:
+      - image: us.gcr.io/soapbubble-dev/urbit:4
+        imagePullPolicy: Always
+        name: urbit-lidled-mordev
+        command:
+        - urbit
+        - -t
+        - -p
+        - "34343"
+        - lidled-mordev
+        env: 
+        - name: MASTER-KEY
+          value: berglas://soapbubble-dev-secrets/lidled-mordev-master-key?destination=/urbit/lidled-mordev.key
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secret/key.json
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 34343
+          name: ames
+          protocol: UDP
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2500Mi
+          requests:
+            cpu: 1000m
+            memory: 2500Mi
+        # stdin: true
+        # tty: true
+        volumeMounts:
+        - mountPath: /urbit
+          name: lidled-mordev-data-5
+        - name: gcp-serviceaccount
+          mountPath: "/secret"
+          readOnly: true
+      imagePullSecrets:
+      - name: "soapbubble-dev"
+      dnsConfig: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+      - name: gcp-serviceaccount
+        secret:
+          secretName: gcp-serviceaccount
+  volumeClaimTemplates:
+  - metadata:
+      name: lidled-mordev-data-5
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 60Gi
+      storageClassName: linode-block-storage-retain
+      volumeMode: Filesystem
+      volumeName: pvc-9cba2e9e644c41c0
+
+---

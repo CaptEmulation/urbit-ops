@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: larnev-hobled-lidled-mordev
+  namespace: urbit
+  labels:
+    app: larnev-hobled-lidled-mordev
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+  - host: larnev-hobled-lidled-mordev.soapbubble.online
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: larnev-hobled-lidled-mordev-http
+            port: 
+              number: 80
+  tls:
+  - hosts:
+    - larnev-hobled-lidled-mordev.soapbubble.online
+    secretName: larnev-hobled-lidled-mordev-soapbubble-online-tls
+---

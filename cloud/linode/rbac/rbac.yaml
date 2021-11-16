@@ -1,0 +1,88 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-view
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: metrics-view
+  namespace: metrics
+rules:
+  - apiGroups: [""]
+    resources: ["services", "services/portforward"]
+    verbs: ["get", "list", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: urbit-admin
+  namespace: urbit
+rules:
+  - apiGroups: [""]
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: urbit-admin
+  namespace: urbit
+subjects:
+- kind: User
+  apiGroup: ""
+  name: "system:serviceaccount:urbit:urbit-admin"
+  apiGroup: ""
+roleRef:
+  kind: Role 
+  name: urbit-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: metrics-view
+  namespace: urbit
+subjects:
+- kind: User
+  apiGroup: ""
+  name: "system:serviceaccount:urbit:urbit-admin"
+roleRef:
+  kind: Role 
+  name: metrics-view
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: urbit-node-view
+  namespace: urbit
+subjects:
+- kind: User
+  name: "system:serviceaccount:urbit:urbit-admin"
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole 
+  name: node-view 
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: urbit-admin
+  namespace: urbit
+secrets:
+  - name: urbit-admin-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: urbit-admin-secret
+  namespace: urbit
+  annotations:
+    kubernetes.io/service-account.name: urbit-admin
+type: kubernetes.io/service-account-token
